@@ -345,68 +345,71 @@ function wingame(DB)
         flag = false
         break
       elseif move_type == "move" || move_type == "drop"
-        if length(kings_white) != 0 && (targetx,targety) == kings_white[1]
-          if length(princes_white) == 0
+        if length(kings_white) != 0
+          if (targetx,targety) == kings_white[1]
+            if length(princes_white) == 0
+              return("B")
+              flag = false
+              break
+            else
+              deleteat!(kings_white,1)
+            end
+          elseif (sourcex,sourcey) == kings_white[1]
+              kings_white[1] = (targetx,targety)
+          end
+        elseif length(kings_white) == 0
+          if (targetx,targety) == princes_white[1]
             return("B")
             flag = false
             break
-          else
-            deleteat!(kings_white,1)
+          elseif (sourcex,sourcey) == princes_white[1]
+              princes_white[1] = (targetx,targety)
           end
-        elseif length(kings_black) != 0 && (targetx,targety) == kings_black[1]
-          if length(princes_black) == 0
+        end
+        if length(kings_black) != 0
+          if (targetx,targety) == kings_black[1]
+            if length(princes_black) == 0
+              return("W")
+              flag = false
+              break
+            else
+              deleteat!(kings_black,1)
+            end
+          elseif (sourcex,sourcey) == kings_black[1]
+              kings_black[1] = (targetx,targety)
+          end
+        elseif length(kings_black) == 0
+          if (targetx,targety) == princes_black[1]
             return("W")
             flag = false
             break
-          else
-            deleteat!(kings_black,1)
+          elseif (sourcex,sourcey) == princes_black[1]
+              princes_black[1] = (targetx,targety)
           end
         end
-        if length(princes_white) != 0 && (targetx,targety) == princes_white[1]
-          if length(kings_white) == 0
-            return("B")
-            flag = false
-            break
-          else
-            deleteat!(princes_white,1)
-          end
-        elseif length(princes_black) != 0 && (targetx,targety) == princes_black[1]
-          if length(kings_black) == 0
-            return("W")
-            flag = false
-            break
-          else
-            deleteat!(princes_black,1)
-          end
-        end
-        if length(kings_white) != 0 && (sourcex,sourcey) == kings_white[1]
-          kings_white[1] = (targetx,targety)
-        elseif length(kings_black) != 0 && (sourcex,sourcey) == kings_black[1]
-          kings_black[1] = (targetx,targety)
-        end
-        if length(princes_white) != 0 && (sourcex,sourcey) == princes_white[1]
-          princes_white[1] = (targetx,targety)
-        elseif length(princes_black) != 0 && (sourcex,sourcey) == princes_black[1]
-          princes_black[1] = (targetx,targety)
-        end
-        if length(drunk_white) != 0 && (sourcex,sourcey) == drunk_white[1]
-          if option == "!"
+        if length(drunk_white) != 0
+          if (sourcex,sourcey) == drunk_white[1]
+            if option == "!"
+              deleteat!(drunk_white,1)
+              push!(princes_white, (targetx,targety))
+            else
+              drunk_white[1] = (targetx,targety)
+            end
+          elseif (targetx,targety) == drunk_white[1]
             deleteat!(drunk_white,1)
-            push!(princes_white, (targetx,targety))
-          else
-            drunk_white[1] = (targetx,targety)
           end
-        elseif length(drunk_black) != 0 && (sourcex,sourcey) == drunk_black[1]
-          if option == "!"
+        end
+        if length(drunk_black) != 0
+          if (sourcex,sourcey) == drunk_black[1]
+            if option == "!"
+              deleteat!(drunk_black,1)
+              push!(princes_black,(targetx,targety))
+            else
+              drunk_black[1] = (targetx,targety)
+            end
+          elseif (targetx,targety) == drunk_black[1]
             deleteat!(drunk_black,1)
-            push!(princes_black,(targetx,targety))
-          else
-            drunk_black[1] = (targetx,targety)
           end
-        elseif (length(drunk_white) != 0 && targetx,targety) == drunk_white[1]
-          deleteat!(drunk_white,1)
-        elseif length(drunk_black) != 0 && (targetx,targety) == drunk_black[1]
-          deleteat!(drunk_black,1)
         end
       end
     end
