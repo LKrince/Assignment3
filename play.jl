@@ -41,6 +41,7 @@ function start_interface()
       end
       println("Enter the time limit, enter 0 to turn off time limit: ")
       time_limit = parse(readline())
+      time_add = 0
       if time_limit != 0
         println("Enter the time add after each step ")
         time_add = parse(readline())
@@ -65,7 +66,6 @@ function start_interface()
         chess_game_CHO(new_game,side)
       end
 
-      run(`rm new_game`)
     elseif option == 3 || option == "exit" || option == "Exit"
       return
     else
