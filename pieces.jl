@@ -533,7 +533,7 @@ module chu
       current_x, current_y = x, y
       if color == 1
         color_opp = 0
-        
+
       else
         color_opp = 1
 
