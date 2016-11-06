@@ -2190,7 +2190,7 @@ module chu
     end
   end
   #promoted phoenix, queen
-  module x
+  module X
     allMove = [1 1 1 -1 -1 1 -1 -1 1 0 -1 0 0 1 0 -1]
     name = "X"
     value = 5

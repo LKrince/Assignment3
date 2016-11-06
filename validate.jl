@@ -1,4 +1,4 @@
-include("board.jl")
+include("AI.jl")
 using SQLite
 #define board
 DB = SQLite.DB(ARGS[1])
