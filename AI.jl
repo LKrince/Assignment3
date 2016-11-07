@@ -1,6 +1,6 @@
-using SQLite
-include("pieces.jl")
 module Tree
+  using SQLite
+  include("pieces.jl")
   type Board
     board
     board_type
@@ -58,7 +58,7 @@ module Tree
       current_move = m.move
 
       board_after_move = Board(b, t)
-      x, y = getsource(current_move,s)
+      x, y = getsource(b, current_move,s)
       moves_after_moves = getAllMoves(b, t, s)
 
       move_node = Move(current_move, [x, y], p, s)
@@ -82,14 +82,14 @@ module Tree
     return board_current, pieceTaken
   end
   #helper function for function expand, get the source of the move
-  function getsource(move,color)
+  function getsource(board, move,color)
     p = move[1]
     l = Int(sqrt(length(board)))
     for i = 1:l
       for j = 1:l
-        if board[i, j][2] == string(color)[2]
-          allmove = getAllMovesChar(i,j,color)
-          if mvoe in allmove
+        if board[i,j] != " " board[i,j][2] == string(side)[1]
+          allmove = getAllMovesChar(board, root.board.board_type, i, j, color)
+          if move in allmove
             return i,j
           end
         end
@@ -111,26 +111,23 @@ module Tree
     end
     return select
   end
-  function simulation(nd::Node)
-    return final_point_advantage
-  end
+
   function makeRandomMove(DB)
-    side = root.move[1].side
-    promotion = "NULL"
+    promotion = NaN
     if root.board.board_type == "chu"
-      if root.move[1].side == 1
+      if side == 1
         promote_line = 4
       else
         promote_line = 8
       end
     elseif root.board.board_type == "minishogi"
-      if root.move[1].side == 1
+      if side == 1
         promote_line = 1
       else
         promote_line = 5
       end
     else
-      if root.move[1].side == 1
+      if side == 1
         promote_line = 3
       else
         promote_line = 7
@@ -141,15 +138,16 @@ module Tree
     r = rand(1:l, 1, 1)
     m = root.move[r]
     b = root.board.board
-
-    source = m.source
-    target = m.current_move
+    #sourcex, sourcey = getsource(b, m, side)
+    sourcex = sourcey = -1
+    source = [sourcex sourcey]
+    target = m[1]
 
     p = target[1]
-    mvoe_num = SQLite.query(DB, "select count(*) from moves")[2].values[1]
+    mvoe_num = SQLite.query(DB, "select count(*) from moves")[1].values[1]
     move_type = "move"
-    targetx = parse(nd.currentMove[3:length(a)-1])
-    targety = Int(nd.currentMove[length(lastMove)])-96
+    targetx = parse(target[3:length(target)-1])
+    targety = Int(target[length(target)])-96
     if side == 1
       if promote_line >= targetx
         promotion = "!"
@@ -161,13 +159,16 @@ module Tree
     end
     i_am_cheating = false
     targetx2 = targety2 = "NULL"
-    sql_move = "insert into moves(move_number,move_type, sourcex, sourcey, targetx, targety, option, i_am_cheating, targetx2, targety2)"
-    sql_move *= " values ($(move_num+1),$move_type, $(source[1]), $(source[2]), $(targetx), $(targety), $promotion,  $i_am_cheating), $targetx2, $targety2"
-    SQLite.execute!(DB, sql_move)
+    move_num = SQLite.query(DB, "select count(*) from moves")[1].values[1]
+    sql_move = "insert into moves(move_number,move_type, sourcex, sourcey, targetx1, targety1, option, i_am_cheating, targetx2, targety2)"
+    sql_move *= " values ($(move_num+1),$(move_type), $(source[1]), $(source[2]), $(targetx), $(targety), \""*string(promotion)*"\",  $(i_am_cheating), $(targetx2), $(targety2))"
+    #println(sql_move)
+    #SQLite.execute!(DB, sql_move)
+    #println("Done")
   end
 
   #get standard moves
-  function toStandard(piece::Char, moves, x::Int, y::Int)
+  function toStandard(board, piece::Char, moves, x::Int, y::Int)
     standard = []
     if moves == []
       return standard
@@ -196,7 +197,7 @@ module Tree
         if board[i,j] != " " board[i,j][2] == string(side)[1]
           m = getAllMovesChar(board,board_type,i,j,side)
           p = board[i,j][1]
-          m_std = toStandard(p,m,i,j)
+          m_std = toStandard(board,p,m,i,j)
           for k = 1:length(m_std)
             push!(moves, m_std[k])
           end
@@ -254,12 +255,14 @@ module Tree
         return chu.d.getmoves(board, x, y, color)
       elseif name == 'D'
         temp1 = chu.D.getmoves(board, x, y, color)
-        temp2 = chu.D.getjump(board,x,y,color)
+        temp2 = chu.D.getcapture(board,x,y,color)
         for i in temp2
           push!(temp1, i)
         end
         return temp1
       elseif name == 'e'
+        return chu.e.getmoves(board, x, y, color)
+      elseif name == 'E'
         return chu.E.getmoves(board, x, y, color)
       elseif name == 'f'
         return chu.f.getmoves(board, x, y, color)
@@ -273,7 +276,7 @@ module Tree
         return chu.h.getmoves(board, x, y, color)
       elseif name == 'H'
         temp1 = chu.H.getmoves(board, x, y, color)
-        temp2 = chu.H.getjump(board,x,y,color)
+        temp2 = chu.H.getcapture(board,x,y,color)
         for i in temp2
           push!(temp1, i)
         end
@@ -298,7 +301,12 @@ module Tree
       elseif name == 'n'
         return chu.n.getmoves(board, x, y, color)
       elseif name == 'N'
-        return chu.N.getmoves(board, x, y, color)
+        temp1 = chu.N.getjump(board,x,y,color)
+        temp2 = chu.N.getmoves(board, x, y, color)
+        for i in temp2
+          push!(temp1, i)
+        end
+        return temp1
       elseif name == 'o'
         return chu.o.getmoves(board, x, y, color)
       elseif name == 'O'

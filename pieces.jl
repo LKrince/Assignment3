@@ -406,19 +406,25 @@ module SM
       end
       l = convert(Int, sqrt(length(board)))
       valid = []
-      for i = 1:2:length(allMove)
-        move_x, move_y = allMove[i], allMove[i+1]
-        target_x, target_y = current_x + move_x, current_y + move_y
-        if !((1<= target_x <=l) && (1<=target_y<=l))
-          continue
-        elseif board[target_x, target_y] == " "
-          push!(valid, move_x)
-          push!(valid, move_y)
-        elseif board[target_x, target_y][2] == string(color_opp)[1]
-          push!(valid, move_x)
-          push!(valid, move_y)
-        elseif board[target_x, target_y][2] == string(color)[1]
-          continue
+      for j = 1:2:length(allMove)
+        dir = 1
+        move_x, move_y = allMove[j], allMove[j+1]
+        target_x = current_x+move_x*dir
+        target_y = current_y+move_y*dir
+        while (1<= target_x <=l) && (1<=target_y<=l)
+          if board[target_x, target_y] == " "
+            push!(valid, move_x*dir)
+            push!(valid, move_y*dir)
+          elseif board[target_x, target_y][2] == string(color_opp)[1]
+            push!(valid, move_x*dir)
+            push!(valid, move_y*dir)
+            break
+          elseif board[target_x, target_y][2] == string(color)[1]
+            break
+          end
+          dir += 1
+          target_x = current_x+move_x*dir
+          target_y = current_y+move_y*dir
         end
       end
       return valid
@@ -1233,23 +1239,27 @@ module chu
       return valid
     end
     function getcapture(board, x, y, color)
-      if color == 1
-        capture = capture_b
-        color_opp = 0
-      else
-        capture = capture_w
-        color_opp= 1
-      end
-      valid =[]
-      for i = 1:2:length(capture)
-        target_x, target_y = x+capture[i], y+capture[i+1]
-        if board[target_x, target_y] != " " && board[target_x, target_y][2] == string(color_opp)[1]
-          push!(valid, i)
-          push!(valid, i+1)
+        if color == 1
+          capture = capture_b
+          color_opp = 0
+        else
+          capture = capture_w
+          color_opp= 1
         end
+        valid =[]
+        l = convert(Int, sqrt(length(board)))
+        for i = 1:2:length(capture)
+          target_x, target_y = x+capture[i], y+capture[i+1]
+          if !((1<= target_x <=l) && (1<=target_y<=l))
+            continue
+
+          elseif board[target_x, target_y] == " " || board[target_x, target_y][2] == string(color_opp)[1]
+            push!(valid, capture[i])
+            push!(valid, capture[i+1])
+          end
+        end
+        return valid
       end
-      return valid
-    end
   end
 
   #drunk elephant
@@ -1290,7 +1300,7 @@ module chu
   #promoted drunk elephant, prince
   module E
     allMove = [1 1 1 0 1 -1 0 1 0 -1 -1 -1 -1 0 -1 1]
-    name = "k"
+    name = "E"
     value = 4
     function getmoves(board, x, y, color)
       current_x, current_y = x, y
@@ -1600,19 +1610,25 @@ module chu
       end
       l = convert(Int, sqrt(length(board)))
       valid = []
-      for i = 1:2:length(allMove)
-        move_x, move_y = allMove[i], allMove[i+1]
-        target_x, target_y = current_x + move_x, current_y + move_y
-        if !((1<= target_x <=l) && (1<=target_y<=l))
-          continue
-        elseif board[target_x, target_y] == " "
-          push!(valid, move_x)
-          push!(valid, move_y)
-        elseif board[target_x, target_y][2] == string(color_opp)[1]
-          push!(valid, move_x)
-          push!(valid, move_y)
-        elseif board[target_x, target_y][2] == string(color)[1]
-          continue
+      for j = 1:2:length(allMove)
+        dir = 1
+        move_x, move_y = allMove[j], allMove[j+1]
+        target_x = current_x+move_x*dir
+        target_y = current_y+move_y*dir
+        while (1<= target_x <=l) && (1<=target_y<=l)
+          if board[target_x, target_y] == " "
+            push!(valid, move_x*dir)
+            push!(valid, move_y*dir)
+          elseif board[target_x, target_y][2] == string(color_opp)[1]
+            push!(valid, move_x*dir)
+            push!(valid, move_y*dir)
+            break
+          elseif board[target_x, target_y][2] == string(color)[1]
+            break
+          end
+          dir += 1
+          target_x = current_x+move_x*dir
+          target_y = current_y+move_y*dir
         end
       end
       return valid

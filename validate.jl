@@ -1,9 +1,10 @@
-include("AI.jl")
 using SQLite
+include("AI.jl")
 #define board
 DB = SQLite.DB(ARGS[1])
 died_token = Array{String}(0)
 board_type = SQLite.query(DB,"SELECT value FROM meta WHERE key = \"type\";")[1].values[1]
+
 if board_type == "standard"
   global board = ["l0" "n0" "s0" "g0" "k0" "g0" "s0" "n0" "l0";
               " " "b0" " " " " " " " " " " "r0" " ";
@@ -38,37 +39,47 @@ end
 #define situation
 flag = true
 #replay game and trace every moves
-if board_type != "chu"
-  for i = 1:length(SQLite.query(DB,"SELECT move_number FROM moves;")[1])
-    global turn = i % 2 == 0 ? "0" : "1"
-    #update move_vars
-    move_type = SQLite.query(DB,"SELECT move_type FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-    try
-      global sourcex = SQLite.query(DB,"SELECT sourcex FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-    catch
-      global sourcex = -1
-    end
-    try
-      global sourcey = SQLite.query(DB,"SELECT sourcey FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-    catch
-      global sourcey = -1
-    end
-    try
-      global targetx = SQLite.query(DB,"SELECT targetx FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-    catch
-      global targetx = -1
-    end
-    try
-      global targety = SQLite.query(DB,"SELECT targety FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-    catch
-      global targety = -1
-    end
-    try
-      global option = string(SQLite.query(DB,"SELECT option FROM moves WHERE \"move_number\" = $i;")[1].values[1])
-    catch
-      global option = "NULL"
-    end
+for i = 1:length(SQLite.query(DB,"SELECT move_number FROM moves;")[1])
+  global turn = i % 2 == 0 ? "0" : "1"
+  #update move_vars
+  move_type = SQLite.query(DB,"SELECT move_type FROM moves WHERE \"move_number\" = $i;")[1].values[1]
+  try
+    global sourcex = SQLite.query(DB,"SELECT sourcex FROM moves WHERE \"move_number\" = $i;")[1].values[1]
+  catch
+    global sourcex = -1
+  end
+  try
+    global sourcey = SQLite.query(DB,"SELECT sourcey FROM moves WHERE \"move_number\" = $i;")[1].values[1]
+  catch
+    global sourcey = -1
+  end
+  try
+    global targetx = SQLite.query(DB,"SELECT targetx FROM moves WHERE \"move_number\" = $i;")[1].values[1]
+  catch
+    global targetx = -1
+  end
+  try
+    global targety = SQLite.query(DB,"SELECT targety FROM moves WHERE \"move_number\" = $i;")[1].values[1]
+  catch
+    global targety = -1
+  end
+  try
+    global targetx2 = SQLite.query(DB,"SELECT targetx2 FROM moves WHERE \"move_number\" = $i;")[1].values[1]
+  catch
+    global targetx2 = -1
+  end
+  try
+    global targety2 = SQLite.query(DB,"SELECT targety2 FROM moves WHERE \"move_number\" = $i;")[1].values[1]
+  catch
+    global targety2 = -1
+  end
+  try
+    global option = string(SQLite.query(DB,"SELECT option FROM moves WHERE \"move_number\" = $i;")[1].values[1])
+  catch
+    global option = "NULL"
+  end
 
+  if board_type != "chu"
     #validating depends on mvoe_type
     if move_type == "move"
       #token does not exist
@@ -88,7 +99,7 @@ if board_type != "chu"
             break
       #cant promte in unpromoteble area
       elseif option == "!"
-        if board[sourcex,sourcey][1] == "k" ||board[sourcex,sourcey][1] == "g"
+        if board[sourcex,sourcey][1] == 'k' || board[sourcex,sourcey][1] == 'g'
           print(i," ")
           flag = false
           break
@@ -123,7 +134,7 @@ if board_type != "chu"
           end
         end
       end
-      valid_move = getAllMovesChar(board,board_type,sourcex,sourcey,parse(turn))
+      valid_move = Tree.getAllMovesChar(board,board_type,sourcex,sourcey,parse(turn))
       j = 1
       check = false
       while j < length(valid_move)
@@ -133,9 +144,15 @@ if board_type != "chu"
           if board[targetx,targety] != " "
             push!(died_token,string(board[targetx,targety][1])*turn)
           end
-          board[targetx,targety] = board[sourcex,sourcey]
-          board[sourcex,sourcey] = " "
-          break
+          if option == "!"
+            board[targetx,targety] = uppercase(board[sourcex,sourcey])
+            board[sourcex,sourcey] = " "
+            break
+          else
+            board[targetx,targety] = board[sourcex,sourcey]
+            board[sourcex,sourcey] = " "
+            break
+          end
         end
         j = j + 2
       end
@@ -197,48 +214,7 @@ if board_type != "chu"
     elseif move_type == "resign"
       break
     end
-  end
-else
-  for i = 1:length(SQLite.query(DB,"SELECT move_number FROM moves;")[1])
-    global turn = i % 2 == 0 ? "0" : "1"
-    #update move_vars
-    move_type = SQLite.query(DB,"SELECT move_type FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-    try
-      global sourcex = SQLite.query(DB,"SELECT sourcex FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-    catch
-      global sourcex = -1
-    end
-    try
-      global sourcey = SQLite.query(DB,"SELECT sourcey FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-    catch
-      global sourcey = -1
-    end
-    try
-      global targetx1 = SQLite.query(DB,"SELECT targetx1 FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-    catch
-      global targetx1 = -1
-    end
-    try
-      global targety1 = SQLite.query(DB,"SELECT targety1 FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-    catch
-      global targety1 = -1
-    end
-    try
-      global targetx2 = SQLite.query(DB,"SELECT targetx2 FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-    catch
-      global targetx2 = -1
-    end
-    try
-      global targety2 = SQLite.query(DB,"SELECT targety2 FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-    catch
-      global targety2 = -1
-    end
-    try
-      global option = string(SQLite.query(DB,"SELECT option FROM moves WHERE \"move_number\" = $i;")[1].values[1])
-    catch
-      global option = "NULL"
-    end
-
+  else
     #validating depends on mvoe_type
     if move_type == "move"
       #token does not exist
@@ -258,7 +234,12 @@ else
             break
       #cant promte in unpromoteble area
       elseif option == "!"
-        if board[sourcex,sourcey][1] == "k" ||board[sourcex,sourcey][1] == "g"
+        if board[sourcex,sourcey][1] == 'k' ||board[sourcex,sourcey][1] == 'q' || board[sourcex,sourcey][1] == 'i'
+          print(i," ")
+          flag = false
+          break
+        end
+        if isupper(board[sourcex,sourcey][1])
           print(i," ")
           flag = false
           break
@@ -277,69 +258,121 @@ else
           end
         end
       end
-      valid_move = getAllMovesChar(board,board_type,sourcex,sourcey,parse(turn))
+      valid_move = Tree.getAllMovesChar(board,board_type,sourcex,sourcey,parse(turn))
       check = false
       if targetx2 == -1
         j = 1
         while j < length(valid_move)
           check_valid=(sourcex+valid_move[j],sourcey+valid_move[j+1])
-          if (targetx1,targety1) == check_valid
+          if (targetx,targety) == check_valid
             check = true
-            board[targetx1,targety1] = board[sourcex,sourcey]
-            board[sourcex,sourcey] = " "
-            break
+            if option == "!"
+              board[targetx,targety] = uppercase(board[sourcex,sourcey])
+              board[sourcex,sourcey] = " "
+              break
+            else
+              board[targetx,targety] = board[sourcex,sourcey]
+              board[sourcex,sourcey] = " "
+              break
+            end
           end
           j = j + 2
         end
       else
-        if board[sourcex,sourcey][1] == "H" || board[sourcex,sourcey][1] == "D"
-          j=1
-          first = false
-          while j < length(valid_move)
-            check_valid=(sourcex+valid_move[j],sourcey+valid_move[j+1])
-            if (targetx1,targety1) == check_valid || (targetx2,targety2) == check_valid
-              first = true
-            elseif first && (targetx2,targety2) == check_valid
-              check = true
-              if (targetx2,targety2) != (sourcex,sourcey)
+        if board[sourcex,sourcey][1] == 'H'
+          if turn == "0"
+            if (targetx,targety) == (sourcex+1,sourcey)
+              if (targetx2,targety2) == (targetx+1,targety)
+                check = true
                 board[targetx2,targety2] = board[sourcex,sourcey]
+                board[targetx,targety] = " "
                 board[sourcex,sourcey] = " "
+              elseif (targetx2,targety2) == (sourcex,sourcey)
+                check = true
+                board[targetx,targety] = " "
               end
-              break
-            elseif first && (targetx1,targety1) == check_valid
-              check = true
-              if (targetx2,targety2) != (sourcex,sourcey)
-                board[targetx2,targety2] = board[sourcex,sourcey]
-                board[sourcex,sourcey] = " "
-              end
-              break
             end
-            j = j + 2
+          else
+            if (targetx,targety) == (sourcex-1,sourcey)
+              if (targetx2,targety2) == (targetx-1,targety)
+                check = true
+                board[targetx2,targety2] = board[sourcex,sourcey]
+                board[targetx,targety] = " "
+                board[sourcex,sourcey] = " "
+              elseif (targetx2,targety2) == (sourcex,sourcey)
+                check = true
+                board[targetx,targety] = " "
+              end
+            end
           end
-        elseif board[sourcex,sourcey][1] == "i"
-          jump=false
+        elseif board[sourcex,sourcey][1] == 'D'
+          if turn == "0"
+            if (targetx,targety) == (source+1,sourcey-1)
+              if (targetx2,targety2) == (targetx+1,targety-1)
+                check = true
+                board[targetx2,targety2] = board[sourcex,sourcey]
+                board[targetx,targety] = " "
+                board[sourcex,sourcey] = " "
+              elseif (targetx2,targety2) == (sourcex,sourcey)
+                check = true
+                board[targetx,targety] = " "
+              end
+            elseif (targetx,targety) == (sourcex+1,sourcey+1)
+              if (targetx2,targety2) == (targetx+1,targety+1)
+                check = true
+                board[targetx2,targety2] = board[sourcex,sourcey]
+                board[targetx,targety] = " "
+                board[sourcex,sourcey] = " "
+              elseif (targetx2,targety2) == (sourcex,sourcey)
+                check = true
+                board[targetx,targety] = " "
+              end
+            end
+          else
+            if (targetx,targety) == (sourcex-1,sourcey-1)
+              if (targetx2,targety2) == (targetx-1,targety-1)
+                check = true
+                board[targetx2,targety2] = board[sourcex,sourcey]
+                board[targetx,targety] = " "
+                board[sourcex,sourcey] = " "
+              elseif (targetx2,targety2) == (sourcex,sourcey)
+                check = true
+                board[targetx,targety] = " "
+              end
+            elseif (targetx,targety) == (sourcex-1,sourcey+1)
+              if (targetx2,targety2) == (targetx-1,targety+1)
+                check = true
+                board[targetx2,targety2] = board[sourcex,sourcey]
+                board[targetx,targety] = " "
+                board[sourcex,sourcey] = " "
+              elseif (targetx2,targety2) == (sourcex,sourcey)
+                check = true
+                board[targetx,targety] = " "
+              end
+            end
+          end
+        elseif board[sourcex,sourcey][1] == 'i' || board[sourcex,sourcey][1] == 'N'
           j=1
           while j < length(valid_move)
             check_valid=(sourcex+valid_move[j],sourcey+valid_move[j+1])
-            if (targetx1,targety1) == check_valid && (abs(valid_move[j]) == 2 || abs(valid_move[j+1] == 2))
-              jump = true
-              check = true
-            elseif (targetx1,targety1) == check_valid
-              board[targetx1,targety1] = board[sourcex,sourcey]
+            if (targetx,targety) == check_valid && (abs(valid_move[j]) == 2 || abs(valid_move[j+1] == 2))
+              break
+            elseif abs(targetx2-targetx) == 2 || abs(targety2-targety) == 2
+              break
+            elseif (targetx,targety) == check_valid && string(board[sourcex,sourcey][2]) == turn
+              board[targetx,targety] = board[sourcex,sourcey]
               board[sourcex,sourcey] = " "
-              valid_second_move = getAllMovesChar(board,board_type,targetx1,targety1,parse(turn))
-              j=1
-              while j < length(valid_second_move)
-                check_valid=(targetx1+valid_second_move[j],targety1+valid_second_move[j+1])
-                if jump && check_valid == (targetx2,targety2)
-                  break
-                elseif check_valid == (targetx2,targety2)
+              valid_second_move = Tree.getAllMovesChar(board,board_type,targetx,targety,parse(turn))
+              k=1
+              while k < length(valid_second_move)
+                check_valid=(targetx+valid_second_move[k],targety+valid_second_move[k+1])
+                if check_valid == (targetx2,targety2)
                   check = true
-                  board[targetx2,targety2] = board[targetx1,targety1]
-                  board[targetx1,targety1] = " "
+                  board[targetx2,targety2] = board[targetx,targety]
+                  board[targetx,targety] = " "
                   break
                 end
-                j=j+2
+                k=k+2
               end
               break
             end
