@@ -19,8 +19,8 @@ else
 end
 
 if timed == "yes"
-  sente_time = SQLite.query(DB, "SELECT value FROM meta WHERE key = \"sente_time\";")[1].values[1]
-  gote_time = SQLite.query(DB, "SELECT value FROM meta WHERE key = \"gote_time\";")[1].values[1]
+  sente_time = parse(SQLite.query(DB, "SELECT value FROM meta WHERE key = \"sente_time\";")[1].values[1])
+  gote_time = parse(SQLite.query(DB, "SELECT value FROM meta WHERE key = \"gote_time\";")[1].values[1])
   if sente_time == 0
     println("W")
     flag = false

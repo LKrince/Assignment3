@@ -132,7 +132,7 @@ function chess_game_MORS(new_game,side)
     else
       println("AI is moving : ")
       sleep(1)
-      #run(`julia move.jl $new_game`)
+      run(`julia move.jl $new_game`)
     end
     run(`julia --color=yes -- display.jl $new_game`)
     move_number = move_number+1
@@ -202,7 +202,7 @@ function chess_game_CHO(new_game,side)
     else
       println("AI is moving : ")
       sleep(1)
-      #run(`julia move.jl $new_game`)
+      run(`julia move.jl $new_game`)
     end
     run(`julia --color=yes -- display.jl $new_game`)
     move_number = move_number+1
@@ -228,6 +228,9 @@ end
 
 
 function wingame(DB)
+  using SQLite
+
+  DB = SQLite.DB(ARGS[1])
   timed = SQLite.query(DB,"SELECT value FROM meta WHERE key = \"timed\";")[1].values[1]
   move_number = length(SQLite.query(DB,"SELECT move_number FROM moves;")[1])
   board_type = SQLite.query(DB,"SELECT value FROM meta WHERE key = \"type\";")[1].values[1]
@@ -246,8 +249,8 @@ function wingame(DB)
   end
 
   if timed == "yes"
-    sente_time = SQLite.query(DB, "SELECT value FROM meta WHERE key = \"sente_time\";")[1].values[1]
-    gote_time = SQLite.query(DB, "SELECT value FROM meta WHERE key = \"gote_time\";")[1].values[1]
+    sente_time = parse(SQLite.query(DB, "SELECT value FROM meta WHERE key = \"sente_time\";")[1].values[1])
+    gote_time = parse(SQLite.query(DB, "SELECT value FROM meta WHERE key = \"gote_time\";")[1].values[1])
     if sente_time == 0
       return("W")
       flag = false
@@ -257,36 +260,47 @@ function wingame(DB)
     end
   end
 
-  if board_type != "chu"
-    for i = 1 : move_number
-      global turn = i % 2 == 0 ? "0" : "1"
+  for i = 1:length(SQLite.query(DB,"SELECT move_number FROM moves;")[1])
+    global turn = i % 2 == 0 ? "0" : "1"
+    #update move_vars
+    move_type = SQLite.query(DB,"SELECT move_type FROM moves WHERE \"move_number\" = $i;")[1].values[1]
+    try
+      global sourcex = SQLite.query(DB,"SELECT sourcex FROM moves WHERE \"move_number\" = $i;")[1].values[1]
+    catch
+      global sourcex = -1
+    end
+    try
+      global sourcey = SQLite.query(DB,"SELECT sourcey FROM moves WHERE \"move_number\" = $i;")[1].values[1]
+    catch
+      global sourcey = -1
+    end
+    try
+      global targetx = SQLite.query(DB,"SELECT targetx FROM moves WHERE \"move_number\" = $i;")[1].values[1]
+    catch
+      global targetx = -1
+    end
+    try
+      global targety = SQLite.query(DB,"SELECT targety FROM moves WHERE \"move_number\" = $i;")[1].values[1]
+    catch
+      global targety = -1
+    end
+    try
+      global targetx2 = SQLite.query(DB,"SELECT targetx2 FROM moves WHERE \"move_number\" = $i;")[1].values[1]
+    catch
+      global targetx2 = -1
+    end
+    try
+      global targety2 = SQLite.query(DB,"SELECT targety2 FROM moves WHERE \"move_number\" = $i;")[1].values[1]
+    catch
+      global targety2 = -1
+    end
+    try
+      global option = string(SQLite.query(DB,"SELECT option FROM moves WHERE \"move_number\" = $i;")[1].values[1])
+    catch
+      global option = "NULL"
+    end
 
-      move_type = SQLite.query(DB,"SELECT move_type FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-      try
-        global sourcex = SQLite.query(DB,"SELECT sourcex FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-      catch
-        global sourcex = -1
-      end
-      try
-        global sourcey = SQLite.query(DB,"SELECT sourcey FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-      catch
-        global sourcey = -1
-      end
-      try
-        global targetx = SQLite.query(DB,"SELECT targetx FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-      catch
-        global targetx = -1
-      end
-      try
-        global targety = SQLite.query(DB,"SELECT targety FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-      catch
-        global targety = -1
-      end
-      try
-        global option = string(SQLite.query(DB,"SELECT option FROM moves WHERE \"move_number\" = $i;")[1].values[1])
-      catch
-        global option = "NULL"
-      end
+    if board_type != "chu"
       #resign
       if move_type == "resign"
         return(turn == "1"?"R":"r")
@@ -294,6 +308,7 @@ function wingame(DB)
         break
       elseif move_type == "move" || move_type == "drop"
         if (targetx,targety) == kings[1]
+          return("SM")
           return("B")
           flag = false
           break
@@ -308,43 +323,13 @@ function wingame(DB)
           kings[2] = (targetx,targety)
         end
       end
-    end
-  else
-    for i = 1 : move_number
-      global turn = i % 2 == 0 ? "0" : "1"
-
-      move_type = SQLite.query(DB,"SELECT move_type FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-      try
-        global sourcex = SQLite.query(DB,"SELECT sourcex FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-      catch
-        global sourcex = -1
-      end
-      try
-        global sourcey = SQLite.query(DB,"SELECT sourcey FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-      catch
-        global sourcey = -1
-      end
-      try
-        global targetx = SQLite.query(DB,"SELECT targetx FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-      catch
-        global targetx = -1
-      end
-      try
-        global targety = SQLite.query(DB,"SELECT targety FROM moves WHERE \"move_number\" = $i;")[1].values[1]
-      catch
-        global targety = -1
-      end
-      try
-        global option = string(SQLite.query(DB,"SELECT option FROM moves WHERE \"move_number\" = $i;")[1].values[1])
-      catch
-        global option = "NULL"
-      end
+    else
       #resign
       if move_type == "resign"
         return(turn == "1"?"R":"r")
         flag = false
         break
-      elseif move_type == "move" || move_type == "drop"
+      elseif move_type == "move"
         if length(kings_white) != 0
           if (targetx,targety) == kings_white[1]
             if length(princes_white) == 0
@@ -362,8 +347,6 @@ function wingame(DB)
             return("B")
             flag = false
             break
-          elseif (sourcex,sourcey) == princes_white[1]
-              princes_white[1] = (targetx,targety)
           end
         end
         if length(kings_black) != 0
@@ -383,8 +366,20 @@ function wingame(DB)
             return("W")
             flag = false
             break
-          elseif (sourcex,sourcey) == princes_black[1]
-              princes_black[1] = (targetx,targety)
+          end
+        end
+        if length(princes_white) != 0
+          if (sourcex,sourcey) == princes_white[1]
+            princes_white[1] = (targetx,targety)
+          elseif (targetx,targety)  == princes_white[1]
+            deleteat!(princes_white,1)
+          end
+        end
+        if length(princes_black) != 0
+          if (sourcex,sourcey) == princes_black[1]
+            princes_black[1] = (targetx,targety)
+          elseif (targetx,targety)  == princes_black[1]
+            deleteat!(princes_black,1)
           end
         end
         if length(drunk_white) != 0

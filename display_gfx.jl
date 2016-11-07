@@ -1,19 +1,34 @@
 using Tk
 include("getboard.jl")
-board,black_die,white_die=getCurrentBoard(ARGS[1])
+board,black_die,winhite_die=getCurrentBoard(ARGS[1])
+board =  ["l0" "f0" "c0" "s0" "g0" "k0" "e0" "g0" "s0" "c0" "f0" "l0";
+           "a0" " " "b0" " " "t0" "n0" "x0" "t0" " " "b0" " " "a0";
+           "m0" "v0" "r0" "h0" "d0" "i0" "q0" "d0" "h0" "r0" "v0" "m0";
+           "p0" "p0" "p0" "p0" "p0" "p0" "p0" "p0" "p0" "p0" "p0" "p0";
+           " " " " " " "o0" " " " " " " " " "o0" " " " " " ";
+           " " " " " " " " " " " " " " " " " " " " " " " ";
+           " " " " " " " " " " " " " " " " " " " " " " " ";
+           " " " " " " "o1" " " " " " " " " "o1" " " " " " ";
+           "p1" "p1" "p1" "p1" "p1" "p1" "p1" "p1" "p1" "p1" "p1" "p1";
+           "m1" "v1" "r1" "h1" "d1" "q1" "i1" "d1" "h1" "r1" "v1" "m1";
+           "a1" " " "b1" " " "t1" "x1" "n1" "t1" " " "b1" " " "a1";
+           "l1" "f1" "c1" "s1" "g1" "e1" "k1" "g1" "s1" "c1" "f1" "l1";
+           ]
 x,y=size(board)
 win=Toplevel("Chu Shogi")
 f=Frame(win)
+white_die = []
+black_die = []
 a_w=" "
 b_w=" "
 for i in 1:length(white_die)
-    a_w=a_w * white_die[i][1:1]" "
+    a_w=a_w * white_die[i]" "
 end
 a_w="white_die : " *a_w
 white_die_button = Button(win, a_w)
 
 for i in 1:length(black_die)
-    b_w=b_w * black_die[i][1:1]" "
+    b_w=b_w * black_die[i]" "
 end
 b_w="black_die : " *b_w
 black_die_button = Button(win, b_w)
@@ -240,14 +255,21 @@ for i=1:x
   end
 end
 
-
+a = 0
+function callback(path)
+  destroy(win)
+  a = 10
+end
 
 pack(f,expand = true, fill="both")
 pack(white_die_button, expand=true, fill="both")
 pack(black_die_button, expand=true,fill="both")
-for i=1:5
-  quit=Button(win,"Window will close automatically in $i s",path->destroy(win))
-
-  sleep(1)
+exit=Button(win,"Click here to exit the window!!!!!!",callback)
+pack(exit,expand=true,fill="both")
+while(true)
+  if a == 10
+    return
+  else
+    sleep(1)
+  end
 end
-  pack(quit,expand=true,fill="both")

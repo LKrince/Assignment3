@@ -84,6 +84,7 @@ if (limit != 0)
 else
   insert_query ="insert into meta values(\"timed\",\"no\");"
   SQLite.execute!(DB,insert_query)
+
 end
 #seed
 unix_time = time()
